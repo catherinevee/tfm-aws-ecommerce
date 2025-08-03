@@ -1,219 +1,102 @@
-# AWS E-commerce Platform Terraform Module
+# E-commerce Platform Customization Guide
 
-A comprehensive Terraform module for deploying a complete e-commerce platform on AWS with maximum customization capabilities.
+This guide provides detailed information about all customizable parameters in the AWS E-commerce Platform Terraform module.
 
-## Resource Map
+## Table of Contents
 
-```mermaid
-graph TD
-    VPC[VPC & Networking] --> |hosts| App[Application Layer]
-    VPC --> |hosts| Data[Data Layer]
-    VPC --> |hosts| Cache[Caching Layer]
-    
-    subgraph "Networking Layer"
-        VPC --> PublicSubnets[Public Subnets]
-        VPC --> PrivateSubnets[Private Subnets]
-        VPC --> NATGateways[NAT Gateways]
-        VPC --> InternetGateway[Internet Gateway]
-    end
+1. [Basic Configuration](#basic-configuration)
+2. [Enhanced S3 Configuration](#enhanced-s3-configuration)
+3. [Enhanced CloudFront Configuration](#enhanced-cloudfront-configuration)
+4. [Enhanced RDS Configuration](#enhanced-rds-configuration)
+5. [Enhanced DynamoDB Configuration](#enhanced-dynamodb-configuration)
+6. [Enhanced ElastiCache Configuration](#enhanced-elasticache-configuration)
+7. [Enhanced Cognito Configuration](#enhanced-cognito-configuration)
+8. [Enhanced SQS Configuration](#enhanced-sqs-configuration)
+9. [Enhanced Lambda Configuration](#enhanced-lambda-configuration)
+10. [E-commerce Platform Configuration](#e-commerce-platform-configuration)
+11. [Payment Processing Configuration](#payment-processing-configuration)
+12. [Inventory Management Configuration](#inventory-management-configuration)
+13. [Order Management Configuration](#order-management-configuration)
+14. [Customer Management Configuration](#customer-management-configuration)
+15. [Shipping Configuration](#shipping-configuration)
+16. [Tax Configuration](#tax-configuration)
+17. [Discount Configuration](#discount-configuration)
+18. [Analytics Configuration](#analytics-configuration)
+19. [Marketing Configuration](#marketing-configuration)
+20. [Security Configuration](#security-configuration)
+21. [Integration Configuration](#integration-configuration)
+22. [Usage Examples](#usage-examples)
+23. [Best Practices](#best-practices)
+24. [Troubleshooting](#troubleshooting)
 
-    subgraph "Application Layer"
-        App --> Lambda[Lambda Functions]
-        App --> APIGateway[API Gateway]
-        App --> StepFunctions[Step Functions]
-        App --> CloudFront[CloudFront CDN]
-    end
+## Basic Configuration
 
-    subgraph "Data Layer"
-        Data --> RDS[RDS PostgreSQL]
-        Data --> DynamoDB[DynamoDB Tables]
-        Data --> S3[S3 Buckets]
-    end
+### Core Variables
 
-    subgraph "Caching Layer"
-        Cache --> Redis[ElastiCache Redis]
-    end
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `project_name` | string | `"ecommerce-platform"` | Name of the project/application |
+| `environment` | string | `"dev"` | Environment name (dev, staging, prod) |
+| `vpc_cidr` | string | `"10.0.0.0/16"` | CIDR block for VPC |
+| `availability_zones` | number | `2` | Number of availability zones (1-4) |
+| `private_subnet_cidrs` | list(string) | `["10.0.1.0/24", "10.0.2.0/24"]` | CIDR blocks for private subnets |
+| `public_subnet_cidrs` | list(string) | `["10.0.101.0/24", "10.0.102.0/24"]` | CIDR blocks for public subnets |
 
-    subgraph "Authentication"
-        Cognito[Cognito User Pools]
-    end
+### RDS Variables
 
-    subgraph "Messaging"
-        SQS[SQS Queues]
-        SNS[SNS Topics]
-    end
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `rds_instance_class` | string | `"db.t3.micro"` | RDS instance class |
+| `rds_allocated_storage` | number | `20` | Allocated storage in GB (20-65536) |
+| `rds_max_allocated_storage` | number | `100` | Maximum allocated storage in GB |
+| `rds_backup_retention_period` | number | `7` | Backup retention period in days (0-35) |
+| `db_name` | string | `"ecommerce"` | Name of the database |
+| `db_username` | string | `"ecommerce_admin"` | Database master username |
 
-    subgraph "Monitoring"
-        CloudWatch[CloudWatch Logs]
-    end
-```
+### ElastiCache Variables
 
-| Resource Type | Purpose | Configuration |
-|--------------|---------|---------------|
-| VPC | Network isolation | Customizable CIDR, AZs |
-| RDS | Relational database | PostgreSQL, configurable size |
-| DynamoDB | NoSQL storage | On-demand/provisioned capacity |
-| ElastiCache | In-memory caching | Redis, configurable cluster |
-| S3 | Object storage | Multiple buckets, versioning |
-| CloudFront | Content delivery | Custom cache behaviors |
-| Lambda | Serverless compute | Multiple functions, configurable |
-| API Gateway | REST API endpoints | Lambda integration |
-| Cognito | Authentication | User pools, identity pools |
-| SQS | Message queuing | Standard/FIFO queues |
-| SNS | Pub/sub messaging | Multiple topics |
-| CloudWatch | Monitoring | Log groups, metrics |
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `elasticache_node_type` | string | `"cache.t3.micro"` | ElastiCache node type |
 
-## Features
+### Lambda Variables
 
-- **VPC and Networking**: Customizable VPC with public/private subnets, NAT gateways, and security groups
-- **S3 Storage**: Multiple S3 buckets for website hosting, media storage, and documents with full configuration options
-- **CloudFront CDN**: Highly configurable content delivery network with custom cache behaviors
-- **RDS Database**: PostgreSQL database with comprehensive configuration options
-- **DynamoDB Tables**: NoSQL tables for carts, sessions, and other e-commerce data
-- **ElastiCache Redis**: In-memory caching with customizable cluster configurations
-- **Cognito Authentication**: User authentication and authorization with flexible policies
-- **SQS Queues**: Message queuing for order processing and notifications
-- **SNS Topics**: Pub/sub messaging for system notifications
-- **Lambda Functions**: Serverless functions for API handling and order processing
-- **API Gateway**: RESTful API endpoints with Lambda integration
-- **Step Functions**: Workflow orchestration for order processing
-- **CloudWatch Logs**: Centralized logging and monitoring
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `lambda_timeout` | number | `30` | Lambda function timeout in seconds (3-900) |
+| `lambda_memory_size` | number | `512` | Lambda function memory size in MB (128-10240) |
 
-## Quick Start
+### CloudFront Variables
 
-```hcl
-module "ecommerce_platform" {
-  source = "path/to/tfm-aws-ecommerce"
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `cloudfront_price_class` | string | `"PriceClass_100"` | CloudFront price class |
 
-  project_name = "my-ecommerce-app"
-  environment  = "dev"
+### SQS Variables
 
-  # Basic VPC Configuration
-  vpc_cidr             = "10.0.0.0/16"
-  availability_zones   = 2
-  private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24"]
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `sqs_visibility_timeout` | number | `300` | SQS visibility timeout in seconds (0-43200) |
+| `sqs_message_retention` | number | `1209600` | SQS message retention period in seconds (60-1209600) |
 
-  # Enhanced S3 Configuration
-  s3_buckets = {
-    website = {
-      force_destroy = false
-      versioning_enabled = false
-      server_side_encryption = {
-        sse_algorithm = "AES256"
-      }
-      public_access_block = {
-        block_public_acls = false
-        block_public_policy = false
-        ignore_public_acls = false
-        restrict_public_buckets = false
-      }
-    }
-  }
+### CloudWatch Variables
 
-  # Enhanced CloudFront Configuration
-  cloudfront_distributions = {
-    website = {
-      enabled = true
-      price_class = "PriceClass_100"
-      default_cache_behavior = {
-        allowed_methods = ["GET", "HEAD", "OPTIONS"]
-        cached_methods = ["GET", "HEAD"]
-        viewer_protocol_policy = "redirect-to-https"
-        min_ttl = 0
-        default_ttl = 3600
-        max_ttl = 86400
-      }
-    }
-  }
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `log_retention_days` | number | `14` | CloudWatch log retention period in days |
 
-  # Enhanced RDS Configuration
-  rds_instances = {
-    main = {
-      engine = "postgres"
-      engine_version = "14"
-      instance_class = "db.t3.micro"
-      allocated_storage = 20
-      storage_encrypted = true
-    }
-  }
+### Feature Flags
 
-  # Enhanced DynamoDB Configuration
-  dynamodb_tables = {
-    carts = {
-      billing_mode = "PAY_PER_REQUEST"
-      hash_key = "user_id"
-      range_key = "cart_id"
-    }
-    sessions = {
-      billing_mode = "PAY_PER_REQUEST"
-      hash_key = "session_id"
-    }
-  }
-
-  # Enhanced ElastiCache Configuration
-  elasticache_clusters = {
-    main = {
-      node_type = "cache.t3.micro"
-      automatic_failover_enabled = false
-      num_cache_clusters = 1
-    }
-  }
-
-  # Enhanced Cognito Configuration
-  cognito_user_pools = {
-    main = {
-      password_policy = {
-        minimum_length = 8
-        require_lowercase = true
-        require_numbers = true
-        require_symbols = true
-        require_uppercase = true
-      }
-      auto_verified_attributes = ["email"]
-    }
-  }
-
-  # Enhanced SQS Configuration
-  sqs_queues = {
-    orders = {
-      visibility_timeout_seconds = 300
-      message_retention_seconds = 1209600
-    }
-    notifications = {
-      visibility_timeout_seconds = 300
-      message_retention_seconds = 1209600
-    }
-  }
-
-  # Enhanced Lambda Configuration
-  lambda_functions = {
-    api_handler = {
-      timeout = 30
-      memory_size = 512
-      environment = {
-        variables = {
-          NODE_ENV = "production"
-        }
-      }
-    }
-    order_processor = {
-      timeout = 60
-      memory_size = 1024
-    }
-  }
-
-  common_tags = {
-    Environment = "dev"
-    Project     = "my-ecommerce-app"
-    ManagedBy   = "terraform"
-  }
-}
-```
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `enable_auto_scaling` | bool | `false` | Enable auto scaling for the application |
+| `enable_monitoring` | bool | `true` | Enable enhanced monitoring and alerting |
+| `enable_backup` | bool | `true` | Enable automated backups |
+| `enable_encryption` | bool | `true` | Enable encryption for data at rest |
 
 ## Enhanced S3 Configuration
 
-The module provides comprehensive S3 bucket customization through the `s3_buckets` variable:
+The `s3_buckets` variable allows you to configure multiple S3 buckets with comprehensive options:
 
 ```hcl
 s3_buckets = {
@@ -268,7 +151,7 @@ s3_buckets = {
 
 ## Enhanced CloudFront Configuration
 
-Customize CloudFront distributions with the `cloudfront_distributions` variable:
+The `cloudfront_distributions` variable provides comprehensive CloudFront customization:
 
 ```hcl
 cloudfront_distributions = {
@@ -341,7 +224,7 @@ cloudfront_distributions = {
 
 ## Enhanced RDS Configuration
 
-Configure RDS instances with the `rds_instances` variable:
+The `rds_instances` variable allows detailed RDS instance configuration:
 
 ```hcl
 rds_instances = {
@@ -382,7 +265,7 @@ rds_instances = {
 
 ## Enhanced DynamoDB Configuration
 
-Configure DynamoDB tables with the `dynamodb_tables` variable:
+The `dynamodb_tables` variable provides comprehensive DynamoDB table configuration:
 
 ```hcl
 dynamodb_tables = {
@@ -433,7 +316,7 @@ dynamodb_tables = {
 
 ## Enhanced ElastiCache Configuration
 
-Configure ElastiCache clusters with the `elasticache_clusters` variable:
+The `elasticache_clusters` variable allows detailed ElastiCache configuration:
 
 ```hcl
 elasticache_clusters = {
@@ -467,7 +350,7 @@ elasticache_clusters = {
 
 ## Enhanced Cognito Configuration
 
-Configure Cognito user pools with the `cognito_user_pools` variable:
+The `cognito_user_pools` variable provides comprehensive Cognito configuration:
 
 ```hcl
 cognito_user_pools = {
@@ -526,7 +409,7 @@ cognito_user_pools = {
 
 ## Enhanced SQS Configuration
 
-Configure SQS queues with the `sqs_queues` variable:
+The `sqs_queues` variable allows detailed SQS queue configuration:
 
 ```hcl
 sqs_queues = {
@@ -549,7 +432,7 @@ sqs_queues = {
 
 ## Enhanced Lambda Configuration
 
-Configure Lambda functions with the `lambda_functions` variable:
+The `lambda_functions` variable provides comprehensive Lambda function configuration:
 
 ```hcl
 lambda_functions = {
@@ -592,7 +475,7 @@ lambda_functions = {
 
 ## E-commerce Platform Configuration
 
-Configure e-commerce platform features with the `ecommerce_platform_config` variable:
+The `ecommerce_platform_config` variable controls e-commerce platform features:
 
 ```hcl
 ecommerce_platform_config = {
@@ -625,7 +508,7 @@ ecommerce_platform_config = {
 
 ## Payment Processing Configuration
 
-Configure payment processors with the `payment_processors` variable:
+The `payment_processors` variable configures payment processing:
 
 ```hcl
 payment_processors = {
@@ -665,7 +548,7 @@ payment_processors = {
 
 ## Inventory Management Configuration
 
-Configure inventory management with the `inventory_management` variable:
+The `inventory_management` variable configures inventory management:
 
 ```hcl
 inventory_management = {
@@ -689,7 +572,7 @@ inventory_management = {
 
 ## Order Management Configuration
 
-Configure order management with the `order_management` variable:
+The `order_management` variable configures order management:
 
 ```hcl
 order_management = {
@@ -717,7 +600,7 @@ order_management = {
 
 ## Customer Management Configuration
 
-Configure customer management with the `customer_management` variable:
+The `customer_management` variable configures customer management:
 
 ```hcl
 customer_management = {
@@ -744,7 +627,7 @@ customer_management = {
 
 ## Shipping Configuration
 
-Configure shipping with the `shipping_config` variable:
+The `shipping_config` variable configures shipping:
 
 ```hcl
 shipping_config = {
@@ -769,7 +652,7 @@ shipping_config = {
 
 ## Tax Configuration
 
-Configure tax calculation with the `tax_config` variable:
+The `tax_config` variable configures tax calculation:
 
 ```hcl
 tax_config = {
@@ -789,7 +672,7 @@ tax_config = {
 
 ## Discount Configuration
 
-Configure discounts with the `discount_config` variable:
+The `discount_config` variable configures discounts:
 
 ```hcl
 discount_config = {
@@ -811,7 +694,7 @@ discount_config = {
 
 ## Analytics Configuration
 
-Configure analytics with the `analytics_config` variable:
+The `analytics_config` variable configures analytics:
 
 ```hcl
 analytics_config = {
@@ -835,7 +718,7 @@ analytics_config = {
 
 ## Marketing Configuration
 
-Configure marketing features with the `marketing_config` variable:
+The `marketing_config` variable configures marketing features:
 
 ```hcl
 marketing_config = {
@@ -859,7 +742,7 @@ marketing_config = {
 
 ## Security Configuration
 
-Configure security features with the `security_config` variable:
+The `security_config` variable configures security features:
 
 ```hcl
 security_config = {
@@ -883,7 +766,7 @@ security_config = {
 
 ## Integration Configuration
 
-Configure third-party integrations with the `integrations` variable:
+The `integrations` variable configures third-party integrations:
 
 ```hcl
 integrations = {
@@ -908,134 +791,87 @@ integrations = {
 }
 ```
 
-## Webhook Configuration
+## Usage Examples
 
-Configure webhook endpoints with the `webhook_endpoints` variable:
+### Minimal Configuration
 
 ```hcl
-webhook_endpoints = {
-  order_created = {
-    name = "order-created-webhook"
-    url = "https://api.example.com/webhooks/orders/created"
-    events = ["order.created", "order.updated"]
-    secret = "webhook-secret-key"
-    enabled = true  # Default: true
-    retry_count = 3  # Default: 3
-    timeout_seconds = 30  # Default: 30
-    headers = {
-      "Content-Type" = "application/json"
-      "User-Agent" = "E-commerce-Platform/1.0"
-    }
-    tags = {
-      Purpose = "order-notifications"
-    }
+module "ecommerce_platform" {
+  source = "path/to/tfm-aws-ecommerce"
+
+  project_name = "my-ecommerce-app"
+  environment  = "dev"
+
+  # Use all defaults
+  common_tags = {
+    Environment = "dev"
+    Project     = "my-ecommerce-app"
+    ManagedBy   = "terraform"
   }
 }
 ```
 
-## Outputs
-
-The module provides comprehensive outputs for all resources:
+### Production Configuration
 
 ```hcl
-# VPC and Networking
-output "vpc_id" { value = module.ecommerce_platform.vpc_id }
-output "private_subnet_ids" { value = module.ecommerce_platform.private_subnet_ids }
-output "public_subnet_ids" { value = module.ecommerce_platform.public_subnet_ids }
+module "ecommerce_platform" {
+  source = "path/to/tfm-aws-ecommerce"
 
-# S3 Buckets
-output "website_bucket_name" { value = module.ecommerce_platform.website_bucket_name }
-output "media_bucket_name" { value = module.ecommerce_platform.media_bucket_name }
+  project_name = "my-ecommerce-app"
+  environment  = "prod"
 
-# CloudFront
-output "cloudfront_domain_name" { value = module.ecommerce_platform.cloudfront_domain_name }
-output "website_url" { value = module.ecommerce_platform.website_url }
+  # Enhanced configurations for production
+  s3_buckets = {
+    website = {
+      versioning_enabled = true
+      server_side_encryption = {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
 
-# RDS
-output "rds_endpoint" { value = module.ecommerce_platform.rds_endpoint }
-output "rds_database_name" { value = module.ecommerce_platform.rds_database_name }
+  rds_instances = {
+    main = {
+      instance_class = "db.t3.small"
+      allocated_storage = 100
+      multi_az = true
+      deletion_protection = true
+    }
+  }
 
-# DynamoDB
-output "carts_table_name" { value = module.ecommerce_platform.carts_table_name }
-output "sessions_table_name" { value = module.ecommerce_platform.sessions_table_name }
+  elasticache_clusters = {
+    main = {
+      node_type = "cache.t3.small"
+      automatic_failover_enabled = true
+      num_cache_clusters = 2
+    }
+  }
 
-# ElastiCache
-output "elasticache_primary_endpoint" { value = module.ecommerce_platform.elasticache_primary_endpoint }
+  lambda_functions = {
+    api_handler = {
+      timeout = 60
+      memory_size = 1024
+    }
+  }
 
-# Cognito
-output "cognito_user_pool_id" { value = module.ecommerce_platform.cognito_user_pool_id }
-output "cognito_user_pool_client_id" { value = module.ecommerce_platform.cognito_user_pool_client_id }
-
-# SQS
-output "orders_queue_url" { value = module.ecommerce_platform.orders_queue_url }
-output "notifications_queue_url" { value = module.ecommerce_platform.notifications_queue_url }
-
-# Lambda
-output "api_handler_function_name" { value = module.ecommerce_platform.api_handler_function_name }
-output "order_processor_function_name" { value = module.ecommerce_platform.order_processor_function_name }
-
-# API Gateway
-output "api_gateway_url" { value = module.ecommerce_platform.api_gateway_url }
-
-# Summary Outputs
-output "application_endpoints" { value = module.ecommerce_platform.application_endpoints }
-output "database_connection_info" { value = module.ecommerce_platform.database_connection_info }
-output "cache_connection_info" { value = module.ecommerce_platform.cache_connection_info }
-output "authentication_info" { value = module.ecommerce_platform.authentication_info }
-output "storage_info" { value = module.ecommerce_platform.storage_info }
-output "queue_info" { value = module.ecommerce_platform.queue_info }
-output "notification_topics" { value = module.ecommerce_platform.notification_topics }
+  common_tags = {
+    Environment = "prod"
+    Project     = "my-ecommerce-app"
+    ManagedBy   = "terraform"
+  }
+}
 ```
-
-## Requirements
-
-| Name | Version |
-|------|---------|
-| terraform | >= 1.0 |
-| aws | ~> 5.0 |
-| random | ~> 3.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| aws | ~> 5.0 |
-| random | ~> 3.0 |
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| vpc | terraform-aws-modules/vpc/aws | ~> 5.0 |
-
-## Resources
-
-The module creates the following AWS resources:
-
-- **VPC**: Virtual Private Cloud with public and private subnets
-- **Security Groups**: For ALB, RDS, and ElastiCache
-- **S3 Buckets**: Website hosting, media storage, and documents
-- **CloudFront Distribution**: Content delivery network
-- **RDS Instance**: PostgreSQL database
-- **DynamoDB Tables**: Carts and sessions tables
-- **ElastiCache Cluster**: Redis caching
-- **Cognito User Pool**: User authentication
-- **SQS Queues**: Order processing and notifications
-- **SNS Topics**: System notifications
-- **Lambda Functions**: API handling and order processing
-- **API Gateway**: RESTful API endpoints
-- **Step Functions**: Order workflow orchestration
-- **CloudWatch Log Groups**: Centralized logging
 
 ## Best Practices
 
-1. **Security**: Always enable encryption at rest and in transit
-2. **Monitoring**: Enable CloudWatch monitoring and set up alerts
-3. **Backup**: Configure automated backups for critical data
-4. **Scaling**: Use auto-scaling for production environments
-5. **Cost Optimization**: Choose appropriate instance types and storage classes
-6. **Compliance**: Enable PCI DSS compliance for payment processing
-7. **Testing**: Test thoroughly in development before production deployment
+1. **Security First**: Always enable encryption and use proper security groups
+2. **Environment Separation**: Use different configurations for dev, staging, and prod
+3. **Resource Tagging**: Tag all resources for cost tracking and management
+4. **Monitoring**: Enable CloudWatch monitoring and set up alerts
+5. **Backup Strategy**: Configure automated backups for critical data
+6. **Cost Optimization**: Choose appropriate instance types and storage classes
+7. **Compliance**: Enable PCI DSS compliance for payment processing
+8. **Testing**: Test thoroughly in development before production deployment
 
 ## Troubleshooting
 
@@ -1047,28 +883,18 @@ The module creates the following AWS resources:
 4. **IAM Permissions**: Ensure proper IAM roles and policies
 5. **Resource Limits**: Check AWS service limits for your account
 
-### Debugging
+### Debugging Steps
 
 1. **Terraform Plan**: Run `terraform plan` to identify configuration issues
 2. **CloudWatch Logs**: Check Lambda and application logs
 3. **AWS Console**: Verify resource creation in AWS Console
 4. **Network Connectivity**: Test connectivity between resources
+5. **IAM Permissions**: Verify IAM roles have necessary permissions
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This module is licensed under the MIT License. See the LICENSE file for details.
-
-## Support
+### Support
 
 For support and questions:
 - Create an issue in the repository
 - Check the documentation
 - Review the examples directory
+- Consult AWS documentation for specific services 

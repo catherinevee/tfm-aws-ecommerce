@@ -1032,6 +1032,359 @@ variable "security_rules" {
 }
 
 # ==============================================================================
+# Enhanced S3 Configuration Variables
+# ==============================================================================
+
+variable "s3_buckets" {
+  description = "Map of S3 bucket configurations"
+  type = map(object({
+    force_destroy = optional(bool, false)
+    versioning_enabled = optional(bool, false)
+    mfa_delete = optional(bool, false)
+    server_side_encryption = optional(object({
+      sse_algorithm = optional(string, "AES256")
+      kms_master_key_id = optional(string, null)
+      bucket_key_enabled = optional(bool, false)
+    }), {})
+    public_access_block = optional(object({
+      block_public_acls = optional(bool, true)
+      block_public_policy = optional(bool, true)
+      ignore_public_acls = optional(bool, true)
+      restrict_public_buckets = optional(bool, true)
+    }), {})
+    website_configuration = optional(object({
+      index_document = optional(string, "index.html")
+      error_document = optional(string, "error.html")
+      routing_rules = optional(string, null)
+    }), {})
+    lifecycle_rules = optional(list(object({
+      id = string
+      status = string
+      enabled = optional(bool, true)
+      abort_incomplete_multipart_upload_days = optional(number, null)
+      expiration = optional(object({
+        days = optional(number, null)
+        date = optional(string, null)
+        expired_object_delete_marker = optional(bool, null)
+      }), {})
+      noncurrent_version_expiration = optional(object({
+        noncurrent_days = number
+      }), {})
+      transitions = optional(list(object({
+        days = number
+        storage_class = string
+      })), [])
+      noncurrent_version_transitions = optional(list(object({
+        noncurrent_days = number
+        storage_class = string
+      })), [])
+    })), [])
+    cors_configuration = optional(object({
+      allowed_headers = optional(list(string), ["*"])
+      allowed_methods = optional(list(string), ["GET", "HEAD"])
+      allowed_origins = optional(list(string), ["*"])
+      expose_headers = optional(list(string), [])
+      max_age_seconds = optional(number, 3000)
+    }), {})
+    object_ownership = optional(string, "BucketOwnerPreferred")
+    intelligent_tiering = optional(object({
+      status = optional(string, "Enabled")
+      archive_access_tier_days = optional(number, 90)
+      deep_archive_access_tier_days = optional(number, 180)
+    }), {})
+    inventory_configuration = optional(object({
+      destination_bucket = string
+      destination_prefix = optional(string, null)
+      included_object_versions = optional(string, "Current")
+      schedule = optional(object({
+        frequency = optional(string, "Weekly")
+      }), {})
+    }), {})
+    object_lock_configuration = optional(object({
+      object_lock_enabled = optional(string, "Enabled")
+      rule = optional(object({
+        default_retention = optional(object({
+          mode = string
+          days = optional(number, null)
+          years = optional(number, null)
+        }), {})
+      }), {})
+    }), {})
+    replication_configuration = optional(object({
+      role = string
+      rules = list(object({
+        id = string
+        status = string
+        priority = optional(number, null)
+        destination = object({
+          bucket = string
+          storage_class = optional(string, null)
+          replica_kms_key_id = optional(string, null)
+          access_control_translation = optional(object({
+            owner = string
+          }), {})
+        })
+        source_selection_criteria = optional(object({
+          sse_kms_encrypted_objects = optional(object({
+            status = string
+          }), {})
+        }), {})
+      }))
+    }), {})
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
+# Enhanced CloudFront Configuration Variables
+# ==============================================================================
+
+variable "cloudfront_distributions" {
+  description = "Map of CloudFront distribution configurations"
+  type = map(object({
+    enabled = optional(bool, true)
+    is_ipv6_enabled = optional(bool, true)
+    default_root_object = optional(string, "index.html")
+    price_class = optional(string, "PriceClass_100")
+    comment = optional(string, null)
+    retain_on_delete = optional(bool, false)
+    wait_for_deployment = optional(bool, true)
+    http_version = optional(string, "http2")
+    aliases = optional(list(string), [])
+    web_acl_id = optional(string, null)
+    default_cache_behavior = optional(object({
+      allowed_methods = optional(list(string), ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
+      cached_methods = optional(list(string), ["GET", "HEAD"])
+      target_origin_id = optional(string, null)
+      forwarded_values = optional(object({
+        query_string = optional(bool, false)
+        headers = optional(list(string), [])
+        cookies = optional(object({
+          forward = optional(string, "none")
+          whitelisted_names = optional(list(string), [])
+        }), {})
+      }), {})
+      viewer_protocol_policy = optional(string, "redirect-to-https")
+      min_ttl = optional(number, 0)
+      default_ttl = optional(number, 3600)
+      max_ttl = optional(number, 86400)
+      compress = optional(bool, true)
+    }), {})
+    ordered_cache_behaviors = optional(list(object({
+      path_pattern = string
+      allowed_methods = optional(list(string), ["GET", "HEAD"])
+      cached_methods = optional(list(string), ["GET", "HEAD"])
+      target_origin_id = optional(string, null)
+      forwarded_values = optional(object({
+        query_string = optional(bool, false)
+        headers = optional(list(string), [])
+        cookies = optional(object({
+          forward = optional(string, "none")
+          whitelisted_names = optional(list(string), [])
+        }), {})
+      }), {})
+      viewer_protocol_policy = optional(string, "redirect-to-https")
+      min_ttl = optional(number, 0)
+      default_ttl = optional(number, 3600)
+      max_ttl = optional(number, 86400)
+      compress = optional(bool, true)
+    })), [])
+    custom_error_responses = optional(list(object({
+      error_code = number
+      response_code = optional(string, null)
+      response_page_path = optional(string, null)
+      error_caching_min_ttl = optional(number, null)
+    })), [])
+    restrictions = optional(object({
+      geo_restriction = optional(object({
+        restriction_type = optional(string, "none")
+        locations = optional(list(string), [])
+      }), {})
+    }), {})
+    viewer_certificate = optional(object({
+      cloudfront_default_certificate = optional(bool, true)
+      acm_certificate_arn = optional(string, null)
+      ssl_support_method = optional(string, null)
+      minimum_protocol_version = optional(string, null)
+    }), {})
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
+# Enhanced RDS Configuration Variables
+# ==============================================================================
+
+variable "rds_instances" {
+  description = "Map of RDS instance configurations"
+  type = map(object({
+    engine = optional(string, "postgres")
+    engine_version = optional(string, "14")
+    instance_class = optional(string, null)
+    allocated_storage = optional(number, null)
+    max_allocated_storage = optional(number, null)
+    storage_type = optional(string, "gp2")
+    storage_encrypted = optional(bool, true)
+    db_name = optional(string, null)
+    username = optional(string, null)
+    backup_retention_period = optional(number, null)
+    backup_window = optional(string, "03:00-04:00")
+    maintenance_window = optional(string, "sun:04:00-sun:05:00")
+    skip_final_snapshot = optional(bool, null)
+    deletion_protection = optional(bool, null)
+    multi_az = optional(bool, false)
+    publicly_accessible = optional(bool, false)
+    port = optional(number, 5432)
+    parameter_group_name = optional(string, null)
+    option_group_name = optional(string, null)
+    monitoring_interval = optional(number, 0)
+    monitoring_role_arn = optional(string, null)
+    performance_insights_enabled = optional(bool, false)
+    performance_insights_retention_period = optional(number, 7)
+    copy_tags_to_snapshot = optional(bool, true)
+    auto_minor_version_upgrade = optional(bool, true)
+    allow_major_version_upgrade = optional(bool, false)
+    apply_immediately = optional(bool, false)
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
+# Enhanced ElastiCache Configuration Variables
+# ==============================================================================
+
+variable "elasticache_clusters" {
+  description = "Map of ElastiCache cluster configurations"
+  type = map(object({
+    replication_group_id = optional(string, null)
+    description = optional(string, null)
+    node_type = optional(string, null)
+    port = optional(number, 6379)
+    automatic_failover_enabled = optional(bool, null)
+    num_cache_clusters = optional(number, null)
+    engine = optional(string, "redis")
+    engine_version = optional(string, "7.0")
+    parameter_group_name = optional(string, null)
+    subnet_group_name = optional(string, null)
+    security_group_ids = optional(list(string), [])
+    at_rest_encryption_enabled = optional(bool, true)
+    transit_encryption_enabled = optional(bool, true)
+    auth_token = optional(string, null)
+    kms_key_id = optional(string, null)
+    log_delivery_configuration = optional(list(object({
+      destination = string
+      destination_type = string
+      log_format = string
+      log_type = string
+    })), [])
+    maintenance_window = optional(string, null)
+    snapshot_window = optional(string, null)
+    snapshot_retention_limit = optional(number, 0)
+    notification_topic_arn = optional(string, null)
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
+# Enhanced Cognito Configuration Variables
+# ==============================================================================
+
+variable "cognito_user_pools" {
+  description = "Map of Cognito user pool configurations"
+  type = map(object({
+    name = optional(string, null)
+    password_policy = optional(object({
+      minimum_length = optional(number, 8)
+      require_lowercase = optional(bool, true)
+      require_numbers = optional(bool, true)
+      require_symbols = optional(bool, true)
+      require_uppercase = optional(bool, true)
+      temporary_password_validity_days = optional(number, 7)
+    }), {})
+    auto_verified_attributes = optional(list(string), ["email"])
+    verification_message_template = optional(object({
+      default_email_option = optional(string, "CONFIRM_WITH_CODE")
+      email_subject = optional(string, null)
+      email_message = optional(string, null)
+      sms_message = optional(string, null)
+    }), {})
+    email_configuration = optional(object({
+      email_sending_account = optional(string, "COGNITO_DEFAULT")
+      from_email_address = optional(string, null)
+      reply_to_email_address = optional(string, null)
+      source_arn = optional(string, null)
+    }), {})
+    sms_configuration = optional(object({
+      external_id = string
+      sns_caller_arn = string
+    }), {})
+    admin_create_user_config = optional(object({
+      allow_admin_create_user_only = optional(bool, false)
+      invite_message_template = optional(object({
+        email_message = optional(string, null)
+        email_subject = optional(string, null)
+        sms_message = optional(string, null)
+      }), {})
+    }), {})
+    device_configuration = optional(object({
+      challenge_required_on_new_device = optional(bool, false)
+      device_only_remembered_on_user_prompt = optional(bool, false)
+    }), {})
+    user_pool_add_ons = optional(object({
+      advanced_security_mode = optional(string, "OFF")
+    }), {})
+    username_attributes = optional(list(string), [])
+    username_configuration = optional(object({
+      case_sensitive = optional(bool, false)
+    }), {})
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
+# Enhanced Lambda Configuration Variables
+# ==============================================================================
+
+variable "lambda_functions" {
+  description = "Map of Lambda function configurations"
+  type = map(object({
+    filename = optional(string, null)
+    function_name = optional(string, null)
+    handler = optional(string, "index.handler")
+    runtime = optional(string, "nodejs18.x")
+    timeout = optional(number, 30)
+    memory_size = optional(number, 512)
+    description = optional(string, null)
+    reserved_concurrent_executions = optional(number, null)
+    publish = optional(bool, false)
+    layers = optional(list(string), [])
+    environment = optional(object({
+      variables = optional(map(string), {})
+    }), {})
+    vpc_config = optional(object({
+      subnet_ids = list(string)
+      security_group_ids = list(string)
+    }), {})
+    file_system_config = optional(object({
+      arn = string
+      local_mount_path = string
+    }), {})
+    image_config = optional(object({
+      entry_point = optional(list(string), [])
+      command = optional(list(string), [])
+      working_directory = optional(string, null)
+    }), {})
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# ==============================================================================
 # Enhanced Integration Configuration Variables
 # ==============================================================================
 
